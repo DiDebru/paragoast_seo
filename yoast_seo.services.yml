@@ -4,4 +4,4 @@ services:
     arguments: ['@module_handler']
   yoast_seo.field_manager:
     class: Drupal\yoast_seo\YoastSeoFieldManager
-    arguments: []
+    arguments: ['@entity_field.manager']
