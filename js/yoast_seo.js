@@ -102,6 +102,23 @@
                       DrupalSource.triggerEvent(editor.name);
                     });
                   }
+                  if (drupalSettings.yoast_seo.fields.paragraph_text_fields != 'undefined') {
+                    console.log(editor.name);
+                    $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
+                      var css_id = editor.name;
+                      if (css_id.indexOf(val) >= 0) {
+                        console.log(true);
+                        console.log(val);
+                        console.log(document.getElementById(editor.name));
+                        editor.on('change', function () {
+                          // Let CKEditor handle updating the linked text element.
+                          editor.updateElement();
+                          // Dispatch input event so Yoast SEO knows something changed!
+                          DrupalSource.triggerEvent(editor.name);
+                        });
+                      }
+                    });
+                  }
                 }
               });
             }
@@ -134,6 +151,7 @@ YoastSEO_DrupalSource = function (args) {
  * @param field
  */
 YoastSEO_DrupalSource.prototype.triggerEvent = function (field) {
+  console.log('triggerEvent : ' . field);
   if ("createEvent" in document) {
     var ev = document.createEvent("HTMLEvents");
     ev.initEvent("input", false, true);

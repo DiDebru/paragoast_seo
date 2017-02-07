@@ -348,7 +348,7 @@ class YoastSeoFieldManager {
    * Filter Paragraph Text Fields.
    *
    * @return array
-   *   Array of text field_name => field_name.
+   *   Array of text field-name => field-name.
    */
   public function filterTextFields() {
     $text_field_types = ['text_with_summary', 'text_long', 'text'];
@@ -367,7 +367,7 @@ class YoastSeoFieldManager {
 
     foreach ($paragraph_text_types as $type => $fields) {
       foreach ($fields as $field_name => $bundles) {
-        $paragraph_text_fields[$field_name] = $field_name;
+        $paragraph_text_fields[str_replace('_', '-', $field_name)] = str_replace('_', '-', $field_name);
       }
     }
 
