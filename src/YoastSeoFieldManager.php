@@ -287,11 +287,8 @@ class YoastSeoFieldManager {
     // Form config.
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['form_id'] = $form_after_build['#id'];
 
-    $paragraph_fields = $this->filterTextFields($form_state);
-    foreach ($paragraph_fields as $paragraph_field_id => $paragraph_field) {
-      $paragraph_field_id = $paragraph_field->getName();
-      $form_after_build['#attached']['drupalSettings']['yoast_seo']['fields']['paragraph_fields'][] =  $paragraph_field_id;
-    }
+    $paragraph_text_fields = $this->filterTextFields();
+    $form_after_build['#attached']['drupalSettings']['yoast_seo']['fields']['paragraph_text_fields'] = $paragraph_text_fields;
     return $form_after_build;
   }
 
@@ -348,76 +345,34 @@ class YoastSeoFieldManager {
   }
 
   /**
-   * @param $form_after_build
-   *    The form from YoastSeoFieldManager->setFieldsConfiguration().
-   * @param $form_state
-   *    The form_state from YoastSeoFieldManager->setFieldsConfiguration().
+   * Filter Paragraph Text Fields.
    *
    * @return array
-   *    Returns an array of text fields.
-   *
-   * A Function that filters Paragraph text fields out of a specific entity.
-   *
+   *   Array of text field_name => field_name.
    */
-  public function filterTextFields(FormStateInterface $form_state) {
-    // Attach Paragraph fields.
-    $build_info = $form_state->getBuildInfo();
-    $form_entity = $build_info['callback_object'];
-    $entity = $form_entity->getEntity();
-    $entity_type = $entity->getEntityTypeId();
-    $bundle = $entity->bundle();
-    $fields = $this->field_manager->getFieldDefinitions($entity_type, $bundle);
-    $paragraph_field_types = ['entity_reference_revisions'];
-    $extended_text_field_types = ['text_with_summary', 'text_long', 'text'];
+  public function filterTextFields() {
+    $text_field_types = ['text_with_summary', 'text_long', 'text'];
+    $paragraph_text_types = [];
     $paragraph_text_fields = [];
-    $paragraph_fields = [];
 
-    foreach ($fields as $field_name => $field) {
-      // Check If $field is of type entity_reference_revisions.
-      if ($field->getType() == 'entity_reference_revisions') {
-        $field_settings = $field->getSettings();
-        $field_target_bundle = array_keys($field_settings['handler_settings']['target_bundles']);
-        // Get all fields from the paragraph bundle.
-        $paragraph_fields = $this->field_manager->getFieldDefinitions('paragraph', $field_target_bundle[0]);
-        $paragraph_text_fields[$field->id()] = $this->searchForEntityReferenceRevisionFields($paragraph_fields, $extended_text_field_types);
+    foreach ($text_field_types as $text_field_type) {
+      $text_fields[$text_field_type] = $this->field_manager->getFieldMapByFieldType($text_field_type);
+      foreach ($text_fields as $entity_type_id) {
+        // Filter paragraph text fields.
+        if ($entity_type_id['paragraph']) {
+          $paragraph_text_types[$text_field_type] = $entity_type_id['paragraph'];
+        }
+      }
+    }
+
+    foreach ($paragraph_text_types as $type => $fields) {
+      foreach ($fields as $field_name => $bundles) {
+        $paragraph_text_fields[$field_name] = $field_name;
       }
     }
 
     return $paragraph_text_fields;
-  }
 
-  /**
-   * @param $paragraph_field
-   *
-   * @return array
-   *    Array of Paragraph fields with reference revision.
-   */
-  public function getEntityReferenceRevisionFields($paragraph_field) {
-    $field_settings = $paragraph_field->getSettings();
-    $field_target_bundle = array_keys($field_settings['handler_settings']['target_bundles']);
-    $paragraph_fields = $this->field_manager->getFieldDefinitions('paragraph', $field_target_bundle[0]);
-
-    return $paragraph_fields;
-  }
-
-  /**
-   * @param $paragraph_fields
-   * @param $field_types
-   *
-   * @return mixed
-   */
-  public function searchForEntityReferenceRevisionFields($paragraph_fields, $field_types) {
-    $paragraph_text_fields = [];
-    foreach ($paragraph_fields as $paragraph_field_name => $paragraph_field) {
-      if (in_array($paragraph_field->getType(), $field_types)) {
-        $paragraph_text_fields[$paragraph_field->id()] = $paragraph_field;
-      }
-      else if ($paragraph_field->getType() == 'entity_reference_revisions') {
-        $paragraph_fields = $this->getEntityReferenceRevisionFields($paragraph_field);
-        $this->searchForEntityReferenceRevisionFields($paragraph_fields, $field_types);
-      }
-    }
-    return $paragraph_text_fields;
   }
 
 }
