@@ -104,12 +104,10 @@
                   }
                   if (drupalSettings.yoast_seo.fields.paragraph_text_fields != 'undefined') {
                     console.log(editor.name);
+                    var paragraph_text_fields = [];
                     $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
                       var css_id = editor.name;
                       if (css_id.indexOf(val) >= 0) {
-                        console.log(true);
-                        console.log(val);
-                        console.log(document.getElementById(editor.name));
                         editor.on('change', function () {
                           // Let CKEditor handle updating the linked text element.
                           editor.updateElement();
@@ -151,7 +149,7 @@ YoastSEO_DrupalSource = function (args) {
  * @param field
  */
 YoastSEO_DrupalSource.prototype.triggerEvent = function (field) {
-  console.log('triggerEvent : ' . field);
+  console.log('triggerEvent : ' + field);
   if ("createEvent" in document) {
     var ev = document.createEvent("HTMLEvents");
     ev.initEvent("input", false, true);
@@ -189,6 +187,7 @@ YoastSEO_DrupalSource.prototype.getData = function () {
     meta: this.getDataFromInput("meta"),
     snippetMeta: this.getDataFromInput("meta"),
     text: this.getDataFromInput("text"),
+    paragraph_texts: this.getDataFromInput(this.paragraph_texts_callback()),
     pageTitle: this.getDataFromInput("title"),
     snippetTitle: this.getDataFromInput("title"),
     baseUrl: this.config.baseRoot,
@@ -214,7 +213,8 @@ YoastSEO_DrupalSource.prototype.getDataFromInput = function (field) {
       }
     }
     value = output.join("\n");
-  } else {
+  }
+  else {
     value = document.getElementById(this.config.fields[field]).value;
   }
 
@@ -454,3 +454,22 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
   
   return value;
 };
+
+YoastSEO_DrupalSource.prototype.paragraph_texts_callback = function () {
+  var paragraph_texts_arr = [];
+  var paragraph_text = '';
+  if (drupalSettings.yoast_seo.fields.paragraph_text_fields != 'undefined') {
+    console.log(editor.name);
+    $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
+      var css_id = editor.name;
+      if (css_id.indexOf(val) >= 0) {
+        paragraph_texts_arr.push(document.getElementById(editor.name));
+      }
+    });
+    paragraph_text = paragraph_texts_arr.join('\n');
+    console.log(paragraph_text);
+    return this.tokenReplace(paragraph_text);
+  }
+}
+
+
