@@ -103,21 +103,6 @@
                       DrupalSource.triggerEvent(editor.name);
                     });
                   }
-                  if (drupalSettings.yoast_seo.fields.paragraph_text_fields != 'undefined') {
-                    var paragraph_text_fields = [];
-                    $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
-                      var css_id = editor.name;
-                      if (css_id.indexOf(val) >= 0) {
-                        YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] = document.getElementById(editor.name).value;
-                        editor.on('change', function () {
-                          // Let CKEditor handle updating the linked text element.
-                          editor.updateElement();
-                          // Dispatch input event so Yoast SEO knows something changed!
-                          DrupalSource.triggerEvent(editor.name);
-                        });
-                      }
-                    });
-                  }
                 }
               });
             }
@@ -284,6 +269,8 @@ YoastSEO_DrupalSource.prototype.inputElementEventBinder = function () {
       document.getElementById(this.config.fields[field]).addEventListener("input", this.renewData.bind(this));
     }
   }
+
+  jQuery(document).on('yoast-seo-refresh', this.renewData.bind(this));
 };
 
 /**
@@ -455,21 +442,40 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
   return value;
 };
 
-var origGetData = YoastSEO_DrupalSource.prototype.getData;
+(function ($) {
 
-YoastSEO_DrupalSource.prototype.getData = function () {
-  var data = origGetData.call(this);
-  var paragraph_texts = '';
-  console.log(YoastSEO.analyzerArgs.fields.paragraph_texts);
-  jQuery.each(YoastSEO.analyzerArgs.fields.paragraph_texts, function(value) {
-    console.log('Hello');
-    console.log(value);
-    paragraph_texts += value;
-  });
-  console.log(paragraph_texts);
-  data.text = jQuery.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { console.log(value); return value;} ).join('');
-  return data;
-};
+  if (typeof CKEDITOR !== "undefined") {
+    CKEDITOR.on('instanceReady', function (ev) {
+      var editor = ev.editor;
+      $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
+        var css_id = editor.name;
+        if (css_id.indexOf(val) >= 0) {
+          YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] = document.getElementById(editor.name).value;
+          editor.on('change', function () {
+            if (YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] != document.getElementById(editor.name).value) {
+              YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] != document.getElementById(editor.name).value
+            }
+            // Let CKEditor handle updating the linked text element.
+            editor.updateElement();
+
+            $(document).trigger($.Event('yoast-seo-refresh'));
+          });
+        }
+      });
+    });
+  }
+
+  var origGetData = YoastSEO_DrupalSource.prototype.getData;
+
+  YoastSEO_DrupalSource.prototype.getData = function () {
+      var data = origGetData.call(this);
+      var text = jQuery.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { return value;} ).join('');
+      data.text = text;
+      return data;
+  };
+
+})(jQuery);
+
 
 /*YoastSEO_DrupalSource.prototype.inputElementEventBinder = function () {
   var that = this;
