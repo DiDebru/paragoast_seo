@@ -103,7 +103,6 @@
                     });
                   }
                   if (drupalSettings.yoast_seo.fields.paragraph_text_fields != 'undefined') {
-                    console.log(editor.name);
                     var paragraph_text_fields = [];
                     $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
                       var css_id = editor.name;
@@ -187,7 +186,6 @@ YoastSEO_DrupalSource.prototype.getData = function () {
     meta: this.getDataFromInput("meta"),
     snippetMeta: this.getDataFromInput("meta"),
     text: this.getDataFromInput("text"),
-    paragraph_texts: this.getDataFromInput(this.paragraph_texts_callback()),
     pageTitle: this.getDataFromInput("title"),
     snippetTitle: this.getDataFromInput("title"),
     baseUrl: this.config.baseRoot,
@@ -455,21 +453,42 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
   return value;
 };
 
-YoastSEO_DrupalSource.prototype.paragraph_texts_callback = function () {
+var origGetData = YoastSEO_DrupalSource.prototype.getData;
+
+YoastSEO_DrupalSource.prototype.getData = function () {
   var paragraph_texts_arr = [];
   var paragraph_text = '';
-  if (drupalSettings.yoast_seo.fields.paragraph_text_fields != 'undefined') {
-    console.log(editor.name);
-    $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
-      var css_id = editor.name;
-      if (css_id.indexOf(val) >= 0) {
-        paragraph_texts_arr.push(document.getElementById(editor.name));
+  var data = origGetData.call(this);
+  var self = this;
+  if (typeof CKEDITOR !== "undefined") {
+    CKEDITOR.on('instanceReady', function (ev) {
+      var editor = ev.editor;
+      if (drupalSettings.yoast_seo.fields.paragraph_text_fields != 'undefined') {
+        jQuery.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
+          var css_id = editor.name;
+          if (css_id.indexOf(val) >= 0) {
+            //paragraph_texts_arr[editor.name] = document.getElementById(editor.name).value;
+            paragraph_texts_arr.push(self.tokenReplace(document.getElementById(editor.name).value));
+          }
+        });
       }
     });
-    paragraph_text = paragraph_texts_arr.join('\n');
-    console.log(paragraph_text);
-    return this.tokenReplace(paragraph_text);
   }
-}
+  console.log(paragraph_texts_arr.join('\n'));
+  paragraph_text = paragraph_texts_arr.join('');
+  console.log(paragraph_text);
+  data.text = paragraph_text;
+  console.log(data.text);
+  return data;
+};
+
+/*YoastSEO_DrupalSource.prototype.inputElementEventBinder = function () {
+  var that = this;
+  $(document).on('yoast-seo-refresh', function (ev) {
+    that.renewData(ev);
+  });
+};*/
+
+
 
 
