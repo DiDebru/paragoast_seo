@@ -51,6 +51,7 @@
               nodeTitle: yoast_settings.fields.title,
               meta: yoast_settings.fields.meta_description,
               text: yoast_settings.fields.body,
+              paragraph_texts: {},
               url: yoast_settings.fields.path,
               summary: yoast_settings.fields.summary
             },
@@ -107,6 +108,7 @@
                     $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
                       var css_id = editor.name;
                       if (css_id.indexOf(val) >= 0) {
+                        YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] = document.getElementById(editor.name).value;
                         editor.on('change', function () {
                           // Let CKEditor handle updating the linked text element.
                           editor.updateElement();
@@ -456,29 +458,16 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 var origGetData = YoastSEO_DrupalSource.prototype.getData;
 
 YoastSEO_DrupalSource.prototype.getData = function () {
-  var paragraph_texts_arr = [];
-  var paragraph_text = '';
   var data = origGetData.call(this);
-  var self = this;
-  if (typeof CKEDITOR !== "undefined") {
-    CKEDITOR.on('instanceReady', function (ev) {
-      var editor = ev.editor;
-      if (drupalSettings.yoast_seo.fields.paragraph_text_fields != 'undefined') {
-        jQuery.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
-          var css_id = editor.name;
-          if (css_id.indexOf(val) >= 0) {
-            //paragraph_texts_arr[editor.name] = document.getElementById(editor.name).value;
-            paragraph_texts_arr.push(self.tokenReplace(document.getElementById(editor.name).value));
-          }
-        });
-      }
-    });
-  }
-  console.log(paragraph_texts_arr.join('\n'));
-  paragraph_text = paragraph_texts_arr.join('');
-  console.log(paragraph_text);
-  data.text = paragraph_text;
-  console.log(data.text);
+  var paragraph_texts = '';
+  console.log(YoastSEO.analyzerArgs.fields.paragraph_texts);
+  jQuery.each(YoastSEO.analyzerArgs.fields.paragraph_texts, function(value) {
+    console.log('Hello');
+    console.log(value);
+    paragraph_texts += value;
+  });
+  console.log(paragraph_texts);
+  data.text = jQuery.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { console.log(value); return value;} ).join('');
   return data;
 };
 
