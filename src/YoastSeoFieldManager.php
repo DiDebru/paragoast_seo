@@ -3,8 +3,10 @@
 namespace Drupal\yoast_seo;
 
 use \Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\paragraphs\Entity\Paragraph;
 
 /**
  * Class YoastSeoFieldManager.
@@ -212,6 +214,9 @@ class YoastSeoFieldManager {
     $build_info = $form_state->getBuildInfo();
     $form_entity = $build_info['callback_object'];
     $entity = $form_entity->getEntity();
+    $values = $this->arrayToString($this->getTextFieldValues($entity));
+
+
     if ($body_field && isset($form_after_build[$body_field]['widget'][0])) {
       $body_element = $form_after_build[$body_field]['widget'][0];
     }
@@ -375,4 +380,67 @@ class YoastSeoFieldManager {
 
   }
 
+  public function filterEntityReferenceRevisionsFields() {
+    $fields = $this->field_manager->getFieldMapByFieldType('entity_reference_revisions');
+    $entity_reference_fields = [];
+    foreach ($fields as $entity_id => $field) {
+      foreach ($field as $field_name => $value) {
+        $entity_reference_fields[$field_name] = $field_name;
+      }
+    }
+
+    return $entity_reference_fields;
+  }
+
+  public function fetchEntity(ContentEntityInterface $entity) {
+    $field_names = $this->filterEntityReferenceRevisionsFields();
+    foreach ($field_names as $field_name) {
+      if ($entity->hasField($field_name)) {
+        $delta = $entity->{$field_name}->first();
+        if ($delta !== NULL) {
+          return $delta->get('entity')->getTarget()->getValue();
+        }
+      }
+    }
+
+  }
+
+  public function getTextFieldValues(ContentEntityInterface $entity) {
+    $text_field_names = $this->filterTextFields();
+    $field_names = $this->filterEntityReferenceRevisionsFields();
+    $values = [];
+
+    foreach ($field_names as $field_name) {
+      foreach ($text_field_names as $text_field_name) {
+        $new_field_name = str_replace('-', '_', $text_field_name);
+        if ($entity->hasField($field_name)) {
+          $this->getTextFieldValues($this->fetchEntity($entity));
+          if ($entity->hasField($new_field_name)) {
+            $values[$new_field_name] = $entity->get($new_field_name)->getValue();
+          }
+        }
+        else {
+         return;
+        }
+        unset($values[$new_field_name][0]['format']);
+
+      }
+    }
+    return $values;
+  }
+
+  public function arrayToString($array){
+    $string = "";
+    foreach ($array as $key => $value) {
+      if(is_array($value)) {
+        $string .= $this->arrayToString($value);
+      }
+      else {
+        $string .= $value;
+      }
+    }
+    return $string;
+  }
+
 }
+
