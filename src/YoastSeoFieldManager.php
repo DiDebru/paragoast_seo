@@ -2,11 +2,9 @@
 
 namespace Drupal\yoast_seo;
 
-use \Drupal\Component\Utility\NestedArray;
-use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\paragraphs\Entity\Paragraph;
 
 /**
  * Class YoastSeoFieldManager.
@@ -214,9 +212,7 @@ class YoastSeoFieldManager {
     $build_info = $form_state->getBuildInfo();
     $form_entity = $build_info['callback_object'];
     $entity = $form_entity->getEntity();
-    $values = $this->arrayToString($this->getTextFieldValues($entity));
-
-
+    //$values = $this->arrayToString($this->getTextFieldValues($entity));
     if ($body_field && isset($form_after_build[$body_field]['widget'][0])) {
       $body_element = $form_after_build[$body_field]['widget'][0];
     }
@@ -291,6 +287,9 @@ class YoastSeoFieldManager {
 
     // Form config.
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['form_id'] = $form_after_build['#id'];
+    /** @var \Drupal\yoast_seo\TextFieldProcessor $hmm */
+    $hmm = \Drupal::service('text_field.processor');
+    $hmm = $hmm->process($entity, $this->getAllFieldNames());
 
     $paragraph_text_fields = $this->filterTextFields();
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['fields']['paragraph_text_fields'] = $paragraph_text_fields;
@@ -372,7 +371,7 @@ class YoastSeoFieldManager {
 
     foreach ($paragraph_text_types as $type => $fields) {
       foreach ($fields as $field_name => $bundles) {
-        $paragraph_text_fields[str_replace('_', '-', $field_name)] = str_replace('_', '-', $field_name);
+        $paragraph_text_fields[$field_name] = $field_name;
       }
     }
 
@@ -380,66 +379,29 @@ class YoastSeoFieldManager {
 
   }
 
-  public function filterEntityReferenceRevisionsFields() {
+  public function getEntityReferenceRevisionsFieldNames() {
     $fields = $this->field_manager->getFieldMapByFieldType('entity_reference_revisions');
-    $entity_reference_fields = [];
+    $entity_refernce_revision_field_names = [];
     foreach ($fields as $entity_id => $field) {
       foreach ($field as $field_name => $value) {
-        $entity_reference_fields[$field_name] = $field_name;
+        $entity_refernce_revision_field_names[$field_name] = $field_name;
       }
     }
 
-    return $entity_reference_fields;
+    return $entity_refernce_revision_field_names;
   }
 
-  public function fetchEntity(ContentEntityInterface $entity) {
-    $field_names = $this->filterEntityReferenceRevisionsFields();
-    foreach ($field_names as $field_name) {
-      if ($entity->hasField($field_name)) {
-        $delta = $entity->{$field_name}->first();
-        if ($delta !== NULL) {
-          return $delta->get('entity')->getTarget()->getValue();
-        }
-      }
-    }
-
-  }
-
-  public function getTextFieldValues(ContentEntityInterface $entity) {
+  public function getAllFieldNames() {
+    $field_names = [];
     $text_field_names = $this->filterTextFields();
-    $field_names = $this->filterEntityReferenceRevisionsFields();
-    $values = [];
-
-    foreach ($field_names as $field_name) {
-      foreach ($text_field_names as $text_field_name) {
-        $new_field_name = str_replace('-', '_', $text_field_name);
-        if ($entity->hasField($field_name)) {
-          $this->getTextFieldValues($this->fetchEntity($entity));
-          if ($entity->hasField($new_field_name)) {
-            $values[$new_field_name] = $entity->get($new_field_name)->getValue();
-          }
-        }
-        else {
-         return;
-        }
-        unset($values[$new_field_name][0]['format']);
-
-      }
+    $entity_reference_revision_field_names = $this->getEntityReferenceRevisionsFieldNames();
+    foreach ($text_field_names as $text_field_name) {
+      $field_names[$text_field_name] = TRUE;
     }
-    return $values;
-  }
-
-  public function arrayToString($array){
-    $string = "";
-    foreach ($array as $key => $value) {
-      if(is_array($value)) {
-        $string .= $this->arrayToString($value);
-      }
-      else {
-        $string .= $value;
-      }
+    foreach ($entity_reference_revision_field_names as $entity_reference_revision_field_name) {
+      $field_names[$entity_reference_revision_field_name] = FALSE;
     }
-    return $string;
+    return $field_names;
   }
 
 }

@@ -477,12 +477,6 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 })(jQuery);
 
 
-/*YoastSEO_DrupalSource.prototype.inputElementEventBinder = function () {
-  var that = this;
-  $(document).on('yoast-seo-refresh', function (ev) {
-    that.renewData(ev);
-  });
-};*/
 
 
 
