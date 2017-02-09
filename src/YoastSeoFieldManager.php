@@ -50,9 +50,10 @@ class YoastSeoFieldManager {
   /**
    * Constructor for YoastSeoFieldManager.
    */
-  public function __construct(EntityFieldManager $field_manager) {
+  public function __construct(EntityFieldManager $field_manager, TextFieldProcessor $text_field_processor) {
     $this->entity_manager = \Drupal::entityManager();
     $this->field_manager = $field_manager;
+    $this->text_field_processor = $text_field_processor;
   }
 
   /**
@@ -287,12 +288,11 @@ class YoastSeoFieldManager {
 
     // Form config.
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['form_id'] = $form_after_build['#id'];
-    /** @var \Drupal\yoast_seo\TextFieldProcessor $hmm */
-    $hmm = \Drupal::service('text_field.processor');
-    $hmm = $hmm->process($entity, $this->getAllFieldNames());
 
+    $text_fields = $this->text_field_processor->process($entity, $this->getAllFieldNames());
     $paragraph_text_fields = $this->filterTextFields();
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['fields']['paragraph_text_fields'] = $paragraph_text_fields;
+    $form_after_build['#attached']['drupalSettings']['yoast_seo']['fields']['text_fields'] = $text_fields;
     return $form_after_build;
   }
 

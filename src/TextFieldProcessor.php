@@ -47,11 +47,10 @@ class TextFieldProcessor
       if (isset($this->fields[$field])) {
 
         $subPath = array_merge($path, [$field]);
-
+        $key = $this->getFormattedKeys(str_replace('_', '-', $subPath));
         if ($this->fields[$field] === TRUE) {
           $this->data[] = [
-            'key' => $subPath,
-            'text' => render($element[$field]),
+            $key => strip_tags(render($element[$field]), '<p><a><img><h1><h2><h3><h4>'),
           ];
         } else {
           foreach (Element::children($element[$field], TRUE) as $delta) {
@@ -64,4 +63,25 @@ class TextFieldProcessor
 
     return $element;
   }
+
+  public function getFormattedKeys($subpath) {
+    $str = '';
+    $count = 0;
+    // edit-field-extension-0-subform-field-report-0-value
+    while ($count <= count($subpath)-1) {
+      if ($count == 0) {
+        $str .= 'edit-' . str_replace('_', '-', $subpath[$count]) . '-0';
+      }
+      if ($count != 0 && $count != count($subpath)-1) {
+        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-0';
+      }
+
+      if ($count == count($subpath)-1) {
+        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-0-value';
+      }
+      $count++;
+    }
+    return $str;
+  }
+
 }

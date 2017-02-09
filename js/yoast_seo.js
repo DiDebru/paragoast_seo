@@ -443,7 +443,6 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 };
 
 (function ($) {
-
   if (typeof CKEDITOR !== "undefined") {
     CKEDITOR.on('instanceReady', function (ev) {
       var editor = ev.editor;
@@ -452,8 +451,9 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
         if (css_id.indexOf(val) >= 0) {
           YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] = document.getElementById(editor.name).value;
           editor.on('change', function () {
+            console.log(editor.name);
             if (YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] != document.getElementById(editor.name).value) {
-              YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] != document.getElementById(editor.name).value
+              YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] = document.getElementById(editor.name).value
             }
             // Let CKEditor handle updating the linked text element.
             editor.updateElement();
@@ -462,6 +462,7 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
           });
         }
       });
+    console.log(editor.name);
     });
   }
 

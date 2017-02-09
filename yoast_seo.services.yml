@@ -4,7 +4,7 @@ services:
     arguments: ['@module_handler']
   yoast_seo.field_manager:
     class: Drupal\yoast_seo\YoastSeoFieldManager
-    arguments: ['@entity_field.manager']
+    arguments: ['@entity_field.manager', '@text_field.processor']
   text_field.processor:
     class: Drupal\yoast_seo\TextFieldProcessor
     arguments: ['@entity_type.manager']
