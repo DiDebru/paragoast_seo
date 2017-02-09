@@ -41,14 +41,14 @@ class TextFieldProcessor
   public function preRenderCallback($element)
   {
     $path = $element['#tfp_path'];
-    $element['#printed'] = true;
+    $element['#printed'] = TRUE;
 
     foreach (Element::children($element, TRUE) as $field) {
       if (isset($this->fields[$field])) {
 
         $subPath = array_merge($path, [$field]);
 
-        if ($this->fields[$field] === true) {
+        if ($this->fields[$field] === TRUE) {
           $this->data[] = [
             'key' => $subPath,
             'text' => render($element[$field]),
