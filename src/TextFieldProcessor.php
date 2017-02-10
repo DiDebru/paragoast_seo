@@ -72,10 +72,10 @@ class TextFieldProcessor
         $str .= 'edit-' . str_replace('_', '-', $subpath[$count]) . '-' . (is_numeric($subpath[$count+1]) && array_key_exists($count+1 , $subpath) ? $subpath[$count+1] : 0);
       }
       if ($count != 0 && $count != count($subpath)-1 && !is_numeric($subpath[$count])) {
-        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . $subpath[$count-1];
+        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . (is_numeric($subpath[$count+1]) && array_key_exists($count+1 , $subpath) ? $subpath[$count+1] : 0);
       }
       if ($count == count($subpath)-1) {
-        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . $subpath[$count-1] . '-value';
+        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . (is_numeric($subpath[$count+1]) && array_key_exists($count+1 , $subpath) ? $subpath[$count+1] : 0) . '-value';
       }
       $count++;
     }
