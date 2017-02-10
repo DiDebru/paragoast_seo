@@ -444,23 +444,32 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 
 (function ($) {
   if (typeof CKEDITOR !== "undefined") {
+    // generate sample text.
+    $.each(drupalSettings.yoast_seo.fields.text_fields, function (key, object) {
+      $.each(this, function (data_drupal_selector, text) {
+        YoastSEO.analyzerArgs.fields.paragraph_texts[data_drupal_selector] = text;
+      });
+    });
+    YoastSEO.analyzerArgs.sampleText.text = $.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { return value; }).join('');
+    console.log(YoastSEO.analyzerArgs.sampleText.text);
+    // update text
     CKEDITOR.on('instanceReady', function (ev) {
       var editor = ev.editor;
-      $.each(drupalSettings.yoast_seo.fields.paragraph_text_fields, function (val) {
-        var css_id = editor.name;
-        if (css_id.indexOf(val) >= 0) {
-          YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] = document.getElementById(editor.name).value;
-          editor.on('change', function () {
-            console.log(editor.name);
-            if (YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] != document.getElementById(editor.name).value) {
-              YoastSEO.analyzerArgs.fields.paragraph_texts[editor.name] = document.getElementById(editor.name).value
-            }
-            // Let CKEditor handle updating the linked text element.
-            editor.updateElement();
+      $.each(drupalSettings.yoast_seo.fields.text_fields, function (key, object) {
+        $.each(this, function (data_drupal_selector, text) {
+          var css_id = editor.name;
+          if (css_id.indexOf(data_drupal_selector) >= 0) {
+            editor.on('change', function () {
+              if (YoastSEO.analyzerArgs.fields.paragraph_texts[data_drupal_selector] != document.getElementById(editor.name).value) {
+                YoastSEO.analyzerArgs.fields.paragraph_texts[data_drupal_selector] = document.getElementById(editor.name).value
+              }
+              // Let CKEditor handle updating the linked text element.
+              editor.updateElement();
 
-            $(document).trigger($.Event('yoast-seo-refresh'));
-          });
-        }
+              $(document).trigger($.Event('yoast-seo-refresh'));
+            });
+          }
+        });
       });
     console.log(editor.name);
     });
@@ -469,10 +478,10 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
   var origGetData = YoastSEO_DrupalSource.prototype.getData;
 
   YoastSEO_DrupalSource.prototype.getData = function () {
-      var data = origGetData.call(this);
-      var text = jQuery.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { return value;} ).join('');
-      data.text = text;
-      return data;
+    var data = origGetData.call(this);
+    var text = jQuery.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { return value;} ).join('');
+    data.text = text;
+    return data;
   };
 
 })(jQuery);
