@@ -66,7 +66,6 @@ class TextFieldProcessor
   public function getFormattedKey($subpath) {
     $str = '';
     $count = 0;
-    $counter = count($subpath)-1;
     // edit-field-extension-0-subform-field-report-0-value
     while ($count <= count($subpath)-1) {
       if ($count == 0 && !is_numeric($subpath[$count])) {
@@ -78,8 +77,6 @@ class TextFieldProcessor
       if ($count == count($subpath)-1) {
         $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . $subpath[$count-1] . '-value';
       }
-      $hmm = $subpath[$count];
-      $hmm1 = $subpath[$count]-1;
       $count++;
     }
     return $str;
