@@ -288,11 +288,16 @@ class YoastSeoFieldManager {
 
     // Form config.
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['form_id'] = $form_after_build['#id'];
-
+    $text_sum = '';
     $text_fields = $this->text_field_processor->process($entity, $this->getAllFieldNames());
-    $paragraph_text_fields = $this->filterTextFields();
-    $form_after_build['#attached']['drupalSettings']['yoast_seo']['fields']['paragraph_text_fields'] = $paragraph_text_fields;
+    foreach  ($text_fields as $key => $text_field) {
+      foreach ($text_field as $data_drupal_selector => $text){
+        $text_sum .= $text;
+      }
+    }
+    $form_after_build['#attached']['drupalSettings']['yoast_seo']['new_default_text'] = $text_sum;
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['fields']['text_fields'] = $text_fields;
+    $form_after_build['#attached']['drupalSettings']['yoast_seo']['paragraph_texts'] = [];
     return $form_after_build;
   }
 

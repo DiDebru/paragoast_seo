@@ -134,8 +134,7 @@ YoastSEO_DrupalSource = function (args) {
  * Sets field value and dispatches an event to fire content analysis magic
  * @param field
  */
-YoastSEO_DrupalSource.prototype.triggerEvent = function (field) {
-  console.log('triggerEvent : ' + field);
+YoastSEO_DrupalSource.prototype.triggerEvent = function (field) {  
   if ("createEvent" in document) {
     var ev = document.createEvent("HTMLEvents");
     ev.initEvent("input", false, true);
@@ -443,16 +442,13 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 };
 
 (function ($) {
-  if (typeof CKEDITOR !== "undefined") {
-    // generate sample text.
-    $.each(drupalSettings.yoast_seo.fields.text_fields, function (key, object) {
-      $.each(this, function (data_drupal_selector, text) {
-        YoastSEO.analyzerArgs.fields.paragraph_texts[data_drupal_selector] = text;
-      });
+  // generate sample text.
+  $.each(drupalSettings.yoast_seo.fields.text_fields, function (key, object) {
+    $.each(this, function (data_drupal_selector, text) {
+      drupalSettings.yoast_seo.paragraph_texts[data_drupal_selector] = text;
     });
-    console.log(YoastSEO.analyzerArgs.fields.paragraph_texts);
-    YoastSEO.analyzerArgs.sampleText.text = $.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { return value; }).join('');
-    console.log(YoastSEO.analyzerArgs.sampleText.text);
+  });
+  if (typeof CKEDITOR !== "undefined") {
     // update text
     CKEDITOR.on('instanceReady', function (ev) {
       var editor = ev.editor;
@@ -460,19 +456,19 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
         $.each(this, function (data_drupal_selector, text) {
           var css_id = editor.name;
           if (css_id.indexOf(data_drupal_selector) >= 0) {
+            console.log(css_id + '=>' + data_drupal_selector); // check
             editor.on('change', function () {
-              if (YoastSEO.analyzerArgs.fields.paragraph_texts[data_drupal_selector] != document.getElementById(editor.name).value) {
-                YoastSEO.analyzerArgs.fields.paragraph_texts[data_drupal_selector] = document.getElementById(editor.name).value
+              if (text != document.getElementById(editor.name).value) {
+                drupalSettings.yoast_seo.paragraph_texts[data_drupal_selector] = document.getElementById(editor.name).value
               }
               // Let CKEditor handle updating the linked text element.
               editor.updateElement();
-
               $(document).trigger($.Event('yoast-seo-refresh'));
             });
           }
         });
       });
-    console.log(editor.name);
+
     });
   }
 
@@ -480,8 +476,7 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 
   YoastSEO_DrupalSource.prototype.getData = function () {
     var data = origGetData.call(this);
-    var text = jQuery.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { return value;} ).join('');
-    data.text = text;
+    data.text = jQuery.map(drupalSettings.yoast_seo.paragraph_texts, function (value) { return value;} ).join('');
     return data;
   };
 
