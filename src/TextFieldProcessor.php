@@ -42,22 +42,18 @@ class TextFieldProcessor
   {
     $path = $element['#tfp_path'];
     $element['#printed'] = TRUE;
-    if (!array_key_exists('delta', $path)) {
-      $path['delta'] = 0;
-    }
     foreach (Element::children($element, TRUE) as $field) {
       if (isset($this->fields[$field])) {
         $subpath = array_merge($path, [$field]);
         $key = $this->getFormattedKey($subpath);
+
         if ($this->fields[$field] === TRUE) {
           $this->data[] = [
             $key => strip_tags(render($element[$field]), '<p><a><img><h1><h2><h3><h4>'),
           ];
         } else {
           foreach (Element::children($element[$field], TRUE) as $delta) {
-            $subpath['delta'] = $delta;
-            $this->moveToTop($subpath, 'delta');
-            $this->processRecursive($element[$field][$delta], $subpath);
+            $this->processRecursive($element[$field][$delta], array_merge($subpath, [$delta]));
           }
         }
 
@@ -70,27 +66,23 @@ class TextFieldProcessor
   public function getFormattedKey($subpath) {
     $str = '';
     $count = 0;
-    $counter = count($subpath)-2;
+    $counter = count($subpath)-1;
     // edit-field-extension-0-subform-field-report-0-value
-    while ($count <= count($subpath)-2) {
-      if ($count == 0) {
-        $str .= 'edit-' . str_replace('_', '-', $subpath[$count]) . '-' . $subpath['delta'];
+    while ($count <= count($subpath)-1) {
+      if ($count == 0 && !is_numeric($subpath[$count])) {
+        $str .= 'edit-' . str_replace('_', '-', $subpath[$count]) . '-' . (is_numeric($subpath[$count+1]) && array_key_exists($count+1 , $subpath) ? $subpath[$count+1] : 0);
       }
-      if ($count != 0 && $count != count($subpath)-2) {
-        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . $subpath['delta'];
+      if ($count != 0 && $count != count($subpath)-1 && !is_numeric($subpath[$count])) {
+        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . $subpath[$count-1];
       }
-      if ($count == count($subpath)-2) {
-        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . $subpath['delta'] . '-value';
+      if ($count == count($subpath)-1) {
+        $str .= '-subform-' . str_replace('_', '-', $subpath[$count]) . '-' . $subpath[$count-1] . '-value';
       }
+      $hmm = $subpath[$count];
+      $hmm1 = $subpath[$count]-1;
       $count++;
     }
     return $str;
-  }
-
-  private function moveToTop(&$array, $key) {
-    $temp = array($key => $array[$key]);
-    unset($array[$key]);
-    $array = $temp + $array;
   }
 
 }
