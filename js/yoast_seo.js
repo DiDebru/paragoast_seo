@@ -442,32 +442,21 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 };
 
 (function ($) {
-  var fieldMap = {};
-  // generate sample text.
-  $.each(drupalSettings.yoast_seo.fields.text_fields, function (key, object) {
-    $.each(this, function (data_drupal_selector, text) {
-      fieldMap[data_drupal_selector] = text;
-    });
-  });
   if (typeof CKEDITOR !== "undefined") {
     // update text
     CKEDITOR.on('instanceReady', function (ev) {
       var editor = ev.editor;
       $.each(drupalSettings.yoast_seo.fields.text_fields, function (key, object) {
-        $.each(this, function (data_drupal_selector, text) {
-          var css_id = editor.name;
-          if (css_id.indexOf(data_drupal_selector) >= 0) {
-            console.log(css_id + '=>' + data_drupal_selector); // check
-            editor.on('change', function () {
-              if (text != document.getElementById(editor.name).value) {
-                drupalSettings.yoast_seo.paragraph_texts[data_drupal_selector] = document.getElementById(editor.name).value
-              }
-              // Let CKEditor handle updating the linked text element.
-              editor.updateElement();
-              $(document).trigger($.Event('yoast-seo-refresh'));
-            });
-          }
-        });
+        var css_id = editor.name;
+        if (css_id.indexOf(object.data_drupal_selector) >= 0) {
+          console.log(css_id + '=>' + object.data_drupal_selector); // check
+          editor.on('change', function () {
+            // Let CKEditor handle updating the linked text element.
+            editor.updateElement();
+            object.text = document.getElementById(editor.name).value;
+            $(document).trigger($.Event('yoast-seo-refresh'));
+          });
+        }
       });
 
     });
@@ -477,7 +466,8 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 
   YoastSEO_DrupalSource.prototype.getData = function () {
     var data = origGetData.call(this);
-    data.text = jQuery.map(drupalSettings.yoast_seo.paragraph_texts, function (value) { return value;} ).join('');
+    data.text = jQuery.map(drupalSettings.yoast_seo.fields.text_fields, function (object) { return object.text;} ).join('');
+    console.log(data.text);
     return data;
   };
 
