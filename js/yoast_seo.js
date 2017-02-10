@@ -450,6 +450,7 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
         YoastSEO.analyzerArgs.fields.paragraph_texts[data_drupal_selector] = text;
       });
     });
+    console.log(YoastSEO.analyzerArgs.fields.paragraph_texts);
     YoastSEO.analyzerArgs.sampleText.text = $.map(YoastSEO.analyzerArgs.fields.paragraph_texts, function (value) { return value; }).join('');
     console.log(YoastSEO.analyzerArgs.sampleText.text);
     // update text
