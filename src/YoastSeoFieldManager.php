@@ -297,7 +297,6 @@ class YoastSeoFieldManager {
     }
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['new_default_text'] = $text_sum;
     $form_after_build['#attached']['drupalSettings']['yoast_seo']['fields']['text_fields'] = $text_fields;
-    $form_after_build['#attached']['drupalSettings']['yoast_seo']['paragraph_texts'] = [];
     return $form_after_build;
   }
 

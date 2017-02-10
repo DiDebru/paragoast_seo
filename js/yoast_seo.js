@@ -442,10 +442,11 @@ YoastSEO_DrupalSource.prototype.tokenReplace = function (value) {
 };
 
 (function ($) {
+  var fieldMap = {};
   // generate sample text.
   $.each(drupalSettings.yoast_seo.fields.text_fields, function (key, object) {
     $.each(this, function (data_drupal_selector, text) {
-      drupalSettings.yoast_seo.paragraph_texts[data_drupal_selector] = text;
+      fieldMap[data_drupal_selector] = text;
     });
   });
   if (typeof CKEDITOR !== "undefined") {

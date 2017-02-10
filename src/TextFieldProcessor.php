@@ -49,7 +49,8 @@ class TextFieldProcessor
 
         if ($this->fields[$field] === TRUE) {
           $this->data[] = [
-            $key => strip_tags(render($element[$field]), '<p><a><img><h1><h2><h3><h4>'),
+            'data_drupal_selector' => $key,
+            'text' => strip_tags(render($element[$field]), '<p><a><img><h1><h2><h3><h4>'),
           ];
         } else {
           foreach (Element::children($element[$field], TRUE) as $delta) {
